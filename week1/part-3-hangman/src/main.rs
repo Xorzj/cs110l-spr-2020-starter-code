@@ -37,4 +37,42 @@ fn main() {
     // println!("random word: {}", secret_word);
 
     // Your code here! :)
+    let len = secret_word_chars.len();
+    let mut words = vec!['-'; len];
+    let mut guess_string = String::new();
+    let mut guess_last_times = NUM_INCORRECT_GUESSES;
+    while guess_last_times > 0 {
+        print!("The word so far is ");
+        println!("{}", words.iter().collect::<String>());
+        print!("You have guessed the following letters:");
+        println!("{}", guess_string);
+        println!("You have {} guesses left", guess_last_times);
+        print!("Please guess a letter:");
+        io::stdout().flush().expect("Error flushing stdout.");
+        let mut guess = String::new();
+        io::stdin()
+            .read_line(&mut guess)
+            .expect("Error reading line");
+        let guess_char = match guess.trim().chars().next() {
+            Some(c) => c,
+            None => continue,
+        };
+        guess_string.push(guess_char);
+        // 遍历 secret_word_chars 进行比对
+        let mut found = false;
+        for (idx, &c) in secret_word_chars.iter().enumerate() {
+            if c == guess_char {
+                words[idx] = guess_char;
+                found = true;
+            }
+        }
+        if !found {
+            guess_last_times -= 1;
+        }
+        if !words.contains(&'-') {
+            println!("Congratulations! You win!");
+            return;
+        }
+    }
+    println!("Sorry, you lose! The word was {}", secret_word);
 }
