@@ -1,5 +1,7 @@
 Example 1:
 ```
+False 
+在持有不可变引用的时候，修改了原始内容
 fn main() {
     let mut s = String::from("hello");
     let ref1 = &s;
@@ -14,6 +16,8 @@ fn main() {
 
 Example 2:
 ```
+False
+悬垂
 fn drip_drop() -> &String {
     let s = String::from("hello world!");
     return &s;
@@ -24,6 +28,8 @@ fn drip_drop() -> &String {
 
 Example 3:
 ```
+False
+String没有实现Copy特性，在let s2 那一行无法进行拷贝，因为你不能把所有权从Vec转移出来
 fn main() {
     let s1 = String::from("hello");
     let mut v = Vec::new();

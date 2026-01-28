@@ -7,30 +7,75 @@ use std::process;
 pub mod grid;
 
 /// Reads the file at the supplied path, and returns a vector of strings.
-#[allow(unused)] // TODO: delete this line when you implement this function
 fn read_file_lines(filename: &String) -> Result<Vec<String>, io::Error> {
-    unimplemented!();
-    // Be sure to delete the #[allow(unused)] line above
+    let file = File::open(filename)?;
+    let reader = io::BufReader::new(file);
+    let mut lines: Vec<String> = Vec::new();
+    for line_result in reader.lines() {
+        let line = line_result?;
+        lines.push(line);
+    }
+    Ok(lines)
 }
 
-#[allow(unused)] // TODO: delete this line when you implement this function
 fn lcs(seq1: &Vec<String>, seq2: &Vec<String>) -> Grid {
     // Note: Feel free to use unwrap() in this code, as long as you're basically certain it'll
     // never happen. Conceptually, unwrap() is justified here, because there's not really any error
     // condition you're watching out for (i.e. as long as your code is written correctly, nothing
     // external can go wrong that we would want to handle in higher-level functions). The unwrap()
     // calls act like having asserts in C code, i.e. as guards against programming error.
-    unimplemented!();
+    let m = seq1.len();
+    let n = seq2.len();
+    let mut lcs_table = Grid::new(m + 1, n + 1);
+    for i in 0..m + 1 {
+        lcs_table.set(i, 0, 0).unwrap();
+    }
+    for j in 0..n + 1 {
+        lcs_table.set(0, j, 0).unwrap();
+    }
+    for i in 0..m {
+        for j in 0..n {
+            if seq1[i] == seq2[j] {
+                let val = lcs_table.get(i, j).unwrap() + 1;
+                lcs_table.set(i + 1, j + 1, val).unwrap();
+            } else {
+                let val1 = lcs_table.get(i + 1, j).unwrap();
+                let val2 = lcs_table.get(i, j + 1).unwrap();
+                let val = if val1 > val2 { val1 } else { val2 };
+                lcs_table.set(i + 1, j + 1, val).unwrap();
+            }
+        }
+    }
+    lcs_table
     // Be sure to delete the #[allow(unused)] line above
 }
 
-#[allow(unused)] // TODO: delete this line when you implement this function
 fn print_diff(lcs_table: &Grid, lines1: &Vec<String>, lines2: &Vec<String>, i: usize, j: usize) {
-    unimplemented!();
-    // Be sure to delete the #[allow(unused)] line above
+    let mut i = i;
+    let mut j = j;
+    let mut out: Vec<String> = Vec::new();
+
+    while i > 0 || j > 0 {
+        if i > 0 && j > 0 && lines1[i - 1] == lines2[j - 1] {
+            out.push(format!("  {}", lines1[i - 1]));
+            i -= 1;
+            j -= 1;
+        } else if j > 0
+            && (i == 0 || lcs_table.get(i, j - 1).unwrap() >= lcs_table.get(i - 1, j).unwrap())
+        {
+            out.push(format!("+ {}", lines2[j - 1]));
+            j -= 1;
+        } else if i > 0 {
+            out.push(format!("- {}", lines1[i - 1]));
+            i -= 1;
+        }
+    }
+
+    for line in out.iter().rev() {
+        println!("{}", line);
+    }
 }
 
-#[allow(unused)] // TODO: delete this line when you implement this function
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
@@ -40,8 +85,22 @@ fn main() {
     let filename1 = &args[1];
     let filename2 = &args[2];
 
-    unimplemented!();
-    // Be sure to delete the #[allow(unused)] line above
+    let lines1 = match read_file_lines(filename1) {
+        Ok(lines) => lines,
+        Err(err) => {
+            println!("Error reading file {}: {}", filename1, err);
+            process::exit(1);
+        }
+    };
+    let lines2 = match read_file_lines(filename2) {
+        Ok(lines) => lines,
+        Err(err) => {
+            println!("Error reading file {}: {}", filename2, err);
+            process::exit(1);
+        }
+    };
+    let lcs_table = lcs(&lines1, &lines2);
+    print_diff(&lcs_table, &lines1, &lines2, lines1.len(), lines2.len());
 }
 
 #[cfg(test)]
