@@ -1,5 +1,7 @@
 use std::env;
 
+use crate::ps_utils::get_child_processes;
+
 mod open_file;
 mod process;
 mod ps_utils;
@@ -10,11 +12,29 @@ fn main() {
         println!("Usage: {} <name or pid of target>", args[0]);
         std::process::exit(1);
     }
-    #[allow(unused)] // TODO: delete this line for Milestone 1
     let target = &args[1];
 
     // TODO: Milestone 1: Get the target Process using psutils::get_target()
-    unimplemented!();
+    let process = ps_utils::get_target(target)
+        .expect("Error calling ps or pgrep")
+        .unwrap_or_else(|| {
+            eprintln!("Could not find process: {}", target);
+            std::process::exit(1);
+        });
+    process.print();
+    let child_process = get_child_processes(process.pid);
+    match child_process {
+        Ok(children) => {
+            for child in children {
+                child.print();
+            }
+        }
+        Err(e) => {
+            eprintln!("Error getting child processes: {}", e);
+            std::process::exit(1);
+        }
+    }
+
 }
 
 #[cfg(test)]
